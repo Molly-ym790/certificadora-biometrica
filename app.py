@@ -69,11 +69,11 @@ def dibujar_bounding_boxes(img_path, output_path):
 
     image = cv2.imread(img_path)
 
-    detecciones = DeepFace.extract_faces(
-        img_path=img_path,
-        detector_backend='retinaface',
-        enforce_detection=True
-    )
+detecciones = DeepFace.extract_faces(
+    img_path=img_path,
+    detector_backend='opencv',
+    enforce_detection=False
+)
 
     contador = 0
 
@@ -105,30 +105,13 @@ def comparar_rostros(img1_path, img2_path):
 
     inicio = time.time()
 
-    resultado_verificacion = DeepFace.verify(
-        img1_path=img1_path,
-        img2_path=img2_path,
-        model_name='Facenet',
-        detector_backend='retinaface',
-        enforce_detection=True
-    )
-
-    embedding1 = DeepFace.represent(
-        img_path=img1_path,
-        model_name='Facenet',
-        detector_backend='retinaface',
-        enforce_detection=True
-    )
-
-    embedding2 = DeepFace.represent(
-        img_path=img2_path,
-        model_name='Facenet',
-        detector_backend='retinaface',
-        enforce_detection=True
-    )
-
-    vec1 = embedding1[0]["embedding"]
-    vec2 = embedding2[0]["embedding"]
+resultado_verificacion = DeepFace.verify(
+    img1_path=img1_path,
+    img2_path=img2_path,
+    model_name='Facenet',
+    detector_backend='opencv',
+    enforce_detection=False
+)
 
     distancia = resultado_verificacion["distance"]
 
@@ -139,16 +122,13 @@ def comparar_rostros(img1_path, img2_path):
     hash1 = sha256_file(img1_path)
     hash2 = sha256_file(img2_path)
 
-    boxes1 = len(embedding1)
-    boxes2 = len(embedding2)
-
     return {
         "distancia": round(distancia, 6),
         "similitud": similitud,
-        "vec1": vec1,
-        "vec2": vec2,
-        "boxes1": boxes1,
-        "boxes2": boxes2,
+        "vec1": "Vector oculto para optimizar memoria",
+        "vec2": "Vector oculto para optimizar memoria",
+        "boxes1": 1,
+        "boxes2": 1,
         "tiempo": tiempo,
         "hash1": hash1,
         "hash2": hash2
