@@ -4,8 +4,9 @@ import hashlib
 import subprocess
 import datetime
 import numpy as np
+from deepface import DeepFace
+import cv2
 from flask import Flask, render_template_string, request, send_file, url_for  # 🔴 NUEVO
-import face_recognition
 from PIL import Image, ImageDraw
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Preformatted
 from reportlab.lib.styles import getSampleStyleSheet
@@ -65,52 +66,89 @@ def sha256_file(path):
 
 
 def dibujar_bounding_boxes(img_path, output_path):
-    image = face_recognition.load_image_file(img_path)
-    boxes = face_recognition.face_locations(image)
 
-    pil_image = Image.fromarray(image)
-    draw = ImageDraw.Draw(pil_image)
+    image = cv2.imread(img_path)
 
-    for (top, right, bottom, left) in boxes:
-        draw.rectangle(((left, top), (right, bottom)), outline="red", width=4)
+    detecciones = DeepFace.extract_faces(
+        img_path=img_path,
+        detector_backend='retinaface',
+        enforce_detection=True
+    )
 
-    pil_image.save(output_path)
-    return len(boxes)
+    contador = 0
+
+    for face in detecciones:
+
+        area = face["facial_area"]
+
+        x = area["x"]
+        y = area["y"]
+        w = area["w"]
+        h = area["h"]
+
+        cv2.rectangle(
+            image,
+            (x, y),
+            (x + w, y + h),
+            (0, 0, 255),
+            3
+        )
+
+        contador += 1
+
+    cv2.imwrite(output_path, image)
+
+    return contador
 
 
 def comparar_rostros(img1_path, img2_path):
 
     inicio = time.time()
 
-    img1 = face_recognition.load_image_file(img1_path)
-    img2 = face_recognition.load_image_file(img2_path)
+    resultado_verificacion = DeepFace.verify(
+        img1_path=img1_path,
+        img2_path=img2_path,
+        model_name='Facenet',
+        detector_backend='retinaface',
+        enforce_detection=True
+    )
 
-    boxes1 = face_recognition.face_locations(img1)
-    boxes2 = face_recognition.face_locations(img2)
+    embedding1 = DeepFace.represent(
+        img_path=img1_path,
+        model_name='Facenet',
+        detector_backend='retinaface',
+        enforce_detection=True
+    )
 
-    enc1 = face_recognition.face_encodings(img1)
-    enc2 = face_recognition.face_encodings(img2)
+    embedding2 = DeepFace.represent(
+        img_path=img2_path,
+        model_name='Facenet',
+        detector_backend='retinaface',
+        enforce_detection=True
+    )
 
-    if not enc1 or not enc2:
-        return None
+    vec1 = embedding1[0]["embedding"]
+    vec2 = embedding2[0]["embedding"]
 
-    vec1 = enc1[0]
-    vec2 = enc2[0]
+    distancia = resultado_verificacion["distance"]
 
-    distancia = np.linalg.norm(vec1 - vec2)
     similitud = round((1 - distancia) * 100, 2)
+
     tiempo = round(time.time() - inicio, 4)
 
     hash1 = sha256_file(img1_path)
     hash2 = sha256_file(img2_path)
+
+    boxes1 = len(embedding1)
+    boxes2 = len(embedding2)
 
     return {
         "distancia": round(distancia, 6),
         "similitud": similitud,
         "vec1": vec1,
         "vec2": vec2,
-        "boxes1": len(boxes1),
-        "boxes2": len(boxes2),
+        "boxes1": boxes1,
+        "boxes2": boxes2,
         "tiempo": tiempo,
         "hash1": hash1,
         "hash2": hash2
@@ -319,7 +357,7 @@ Autoridad Raíz<br>↓<br>Autoridad Biométrica<br>↓<br>Usuario Certificado
 
 <hr>
 
-<h3>🧬 Vector Biométrico Facial (Modelo ResNet - 128 Dimensiones)</h3>
+<h3>🧬 Vector Biométrico Facial (Modelo FaceNet - 128 Dimensiones)</h3>
 <p>
 Representación matemática única del rostro generada por red neuronal profunda.
 Cada uno de los 128 valores describe características geométricas del rostro.
@@ -329,18 +367,40 @@ Cada uno de los 128 valores describe características geométricas del rostro.
 <div>
 <h4>Imagen 1</h4>
 <img src="{{ url_for('static', filename='credencial_box.jpg') }}" width="300"> <!-- 🔴 NUEVO -->
-<pre style="background:black;color:#00ff00;font-size:10px;max-height:200px;overflow:auto;">
+<div style="
+background:black;
+color:#00ff00;
+font-size:10px;
+max-height:150px;
+max-width:300px;
+overflow:auto;
+padding:10px;
+white-space:pre-wrap;
+word-wrap:break-word;
+border-radius:5px;
+">
 {{resultado.vec1}}
-</pre>
+</div>
 </div>
 
 
 <div>
 <h4>Imagen 2</h4>
 <img src="{{ url_for('static', filename='selfie_box.jpg') }}" width="300"> <!-- 🔴 NUEVO -->
-<pre style="background:black;color:#00ff00;font-size:10px;max-height:200px;overflow:auto;">
+<div style="
+background:black;
+color:#00ff00;
+font-size:10px;
+max-height:150px;
+max-width:300px;
+overflow:auto;
+padding:10px;
+white-space:pre-wrap;
+word-wrap:break-word;
+border-radius:5px;
+">
 {{resultado.vec2}}
-</pre>
+</div>
 </div>
 </div>
 

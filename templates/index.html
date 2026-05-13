@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Certificadora de Usuarios</title>
+</head>
+<body>
+
+<h2>Registro de Usuario</h2>
+<form action="/registrar" method="POST" enctype="multipart/form-data">
+    Nombre: <input type="text" name="nombre" required><br><br>
+    CURP: <input type="text" name="curp" required><br><br>
+    Correo: <input type="email" name="correo" required><br><br>
+
+    Credencial: <input type="file" name="credencial" required><br><br>
+    Selfie: <input type="file" name="selfie" required><br><br>
+
+    <button type="submit">Certificar Usuario</button>
+</form>
+
+<hr>
+
+<h2>Verificar Certificado</h2>
+<form action="/verificar" method="POST" enctype="multipart/form-data">
+    Certificado: <input type="file" name="certificado" required><br><br>
+    <button type="submit">Verificar Certificado</button>
+</form>
+
+</body>
+</html>
