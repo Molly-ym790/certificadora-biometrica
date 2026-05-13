@@ -6,3 +6,4 @@ deepface
 opencv-python
 tensorflow-cpu
 gunicorn
+tf-keras
