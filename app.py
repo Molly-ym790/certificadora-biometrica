@@ -69,11 +69,11 @@ def dibujar_bounding_boxes(img_path, output_path):
 
     image = cv2.imread(img_path)
 
-detecciones = DeepFace.extract_faces(
-    img_path=img_path,
-    detector_backend='opencv',
-    enforce_detection=False
-)
+    detecciones = DeepFace.extract_faces(
+        img_path=img_path,
+        detector_backend='opencv',
+        enforce_detection=True
+    )
 
     contador = 0
 
