@@ -4,5 +4,5 @@ Pillow
 reportlab
 deepface
 opencv-python
-tensorflow
+tensorflow-cpu
 gunicorn
